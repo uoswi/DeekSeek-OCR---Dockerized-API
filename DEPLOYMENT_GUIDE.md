@@ -19,6 +19,15 @@ The updated handler supports:
 3. **RunPod account** with API access
 4. Your **RunPod API key** and **Endpoint ID**
 
+## Version Requirements
+
+**Important:** DeepSeek-OCR requires specific library versions:
+- **transformers 4.46.3** - Required for model compatibility
+- **tokenizers 0.20.3** - Required to read tokenizer files correctly
+- **PyTorch 2.1.1+** - Base image provides this
+
+These exact versions are needed because the model's tokenizer files were created with tokenizers 0.20.3 and cannot be read by older versions (e.g., 0.15.x). The Dockerfile.runpod automatically installs the correct versions.
+
 ---
 
 ## Step 1: Build the Docker Image
@@ -40,6 +49,7 @@ docker tag ${DOCKER_USERNAME}/deepseek-ocr-runpod:latest ${DOCKER_USERNAME}/deep
 **Note:** The build includes:
 - PyTorch 2.1.1 base image (~5 GB)
 - DeepSeek-OCR model weights (~3 GB downloaded from HuggingFace)
+- transformers 4.46.3 and tokenizers 0.20.3 (official DeepSeek-OCR versions)
 - All dependencies including PyMuPDF for PDF processing
 
 ---
@@ -181,7 +191,7 @@ print(response.json())
 | "Model not found" | Ensure `MODEL_PATH` env var is set |
 | "Missing chunk X" | Check network stability, retry upload |
 | "Out of memory" | Reduce DPI in PDF processing or use larger GPU |
-| "data did not match any variant of untagged enum ModelWrapper" | Tokenizers version incompatibility - rebuild image with latest Dockerfile.runpod |
+| "data did not match any variant of untagged enum ModelWrapper" | Tokenizers version incompatibility - requires transformers 4.46.3 and tokenizers 0.20.3. Rebuild with latest Dockerfile.runpod |
 
 ---
 

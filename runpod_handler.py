@@ -9,37 +9,45 @@ import requests
 import fitz  # PyMuPDF
 import subprocess
 
-# Fix transformers and tokenizers version compatibility with PyTorch 2.1.1
+# Verify transformers and tokenizers versions for DeepSeek-OCR compatibility
 print("Checking transformers and tokenizers version compatibility...")
 try:
     import transformers
-    version = transformers.__version__
-    print(f"Current transformers version: {version}")
+    import tokenizers
 
-    # If version is >= 4.37.0, downgrade to 4.36.2 for PyTorch 2.1.1 compatibility
-    major, minor = map(int, version.split('.')[:2])
-    if major > 4 or (major == 4 and minor >= 37):
-        print(f"Incompatible transformers version {version} detected. Downgrading to 4.36.2...")
-        subprocess.check_call([sys.executable, "-m", "pip", "install", "--no-cache-dir", "transformers==4.36.2", "tokenizers==0.15.2"])
-        print("Transformers and tokenizers downgraded successfully. Reloading...")
-        # Force reload of transformers module
+    transformers_version = transformers.__version__
+    tokenizers_version = tokenizers.__version__
+
+    print(f"Current transformers version: {transformers_version}")
+    print(f"Current tokenizers version: {tokenizers_version}")
+
+    # DeepSeek-OCR requires specific versions to read tokenizer files correctly
+    REQUIRED_TRANSFORMERS = "4.46.3"
+    REQUIRED_TOKENIZERS = "0.20.3"
+
+    needs_update = False
+
+    if transformers_version != REQUIRED_TRANSFORMERS:
+        print(f"Warning: transformers {transformers_version} detected, but DeepSeek-OCR requires {REQUIRED_TRANSFORMERS}")
+        needs_update = True
+
+    if tokenizers_version != REQUIRED_TOKENIZERS:
+        print(f"Warning: tokenizers {tokenizers_version} detected, but DeepSeek-OCR requires {REQUIRED_TOKENIZERS}")
+        needs_update = True
+
+    if needs_update:
+        print(f"Installing required versions: transformers=={REQUIRED_TRANSFORMERS}, tokenizers=={REQUIRED_TOKENIZERS}")
+        subprocess.check_call([
+            sys.executable, "-m", "pip", "install", "--no-cache-dir",
+            f"transformers=={REQUIRED_TRANSFORMERS}",
+            f"tokenizers=={REQUIRED_TOKENIZERS}"
+        ])
+        print("Dependencies updated successfully. Reloading...")
         import importlib
         importlib.reload(transformers)
-
-    # Also check tokenizers version for compatibility
-    try:
-        import tokenizers
-        tokenizers_version = tokenizers.__version__
-        print(f"Current tokenizers version: {tokenizers_version}")
-
-        # For transformers 4.36.x, tokenizers should be around 0.15.x
-        tok_major, tok_minor = map(int, tokenizers_version.split('.')[:2])
-        if tok_major > 0 or tok_minor > 15:
-            print(f"Incompatible tokenizers version {tokenizers_version} detected. Installing 0.15.2...")
-            subprocess.check_call([sys.executable, "-m", "pip", "install", "--no-cache-dir", "tokenizers==0.15.2"])
-            print("Tokenizers installed successfully.")
-    except Exception as e:
-        print(f"Warning during tokenizers check: {e}")
+        importlib.reload(tokenizers)
+    else:
+        print("✓ All versions compatible with DeepSeek-OCR")
 
 except Exception as e:
     print(f"Warning during version check: {e}")
