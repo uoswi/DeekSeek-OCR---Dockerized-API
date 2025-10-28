@@ -181,6 +181,7 @@ print(response.json())
 | "Model not found" | Ensure `MODEL_PATH` env var is set |
 | "Missing chunk X" | Check network stability, retry upload |
 | "Out of memory" | Reduce DPI in PDF processing or use larger GPU |
+| "data did not match any variant of untagged enum ModelWrapper" | Tokenizers version incompatibility - rebuild image with latest Dockerfile.runpod |
 
 ---
 
