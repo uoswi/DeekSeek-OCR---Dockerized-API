@@ -38,7 +38,17 @@ import torch
 MODEL_PATH = os.environ.get("MODEL_PATH", "/app/models/DeepSeek-OCR")
 print(f"Loading model from: {MODEL_PATH}")
 
-tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH, trust_remote_code=True)
+# Try loading tokenizer (fast first, fallback to slow if needed)
+try:
+    print("Attempting to load fast tokenizer...")
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH, trust_remote_code=True, use_fast=True)
+    print("✓ Fast tokenizer loaded successfully")
+except Exception as e:
+    print(f"Fast tokenizer failed: {str(e)}")
+    print("Falling back to slow tokenizer...")
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH, trust_remote_code=True, use_fast=False)
+    print("✓ Slow tokenizer loaded successfully")
+
 model = AutoModel.from_pretrained(
     MODEL_PATH,
     trust_remote_code=True,

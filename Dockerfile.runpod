@@ -10,11 +10,12 @@ RUN apt-get update && apt-get install -y \
 
 # Install Python packages
 # Note: torch 2.1.1 is already in base image, no need to reinstall
-# transformers <4.37.0 is required for PyTorch 2.1.1 compatibility
-# (4.37+ requires PyTorch 2.4+ due to _pytree API changes)
+# transformers 4.36.2 for PyTorch 2.1.1 compatibility (4.37+ requires PyTorch 2.4+)
+# tokenizers 0.15.2 for DeepSeek-OCR tokenizer format compatibility
 RUN pip install --no-cache-dir \
     runpod \
-    "transformers>=4.30.0,<4.37.0" \
+    transformers==4.36.2 \
+    tokenizers==0.15.2 \
     accelerate \
     sentencepiece \
     protobuf \
