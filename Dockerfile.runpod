@@ -9,15 +9,15 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python packages
-# DeepSeek-OCR officially requires:
-# - transformers 4.46.3
-# - tokenizers 0.20.3
-# These versions are needed to read the model's tokenizer files correctly
-# Note: PyTorch 2.1.1 in base image works with these versions
+# Official DeepSeek-OCR requirements (tested on Python 3.12.9 + CUDA 11.8 + PyTorch 2.6.0)
+# We use PyTorch 2.1.1 from base image which should be compatible
 RUN pip install --no-cache-dir \
     runpod \
     "transformers==4.46.3" \
     "tokenizers==0.20.3" \
+    einops \
+    addict \
+    easydict \
     accelerate \
     sentencepiece \
     protobuf \
@@ -25,6 +25,10 @@ RUN pip install --no-cache-dir \
     requests \
     huggingface_hub \
     PyMuPDF
+
+# Install flash-attn for optimal performance
+# Model uses flash_attention_2 implementation
+RUN pip install --no-cache-dir flash-attn==2.7.3 --no-build-isolation
 
 # Clone DeepSeek-OCR repository
 RUN git clone https://github.com/deepseek-ai/DeepSeek-OCR.git /app/DeepSeek-OCR

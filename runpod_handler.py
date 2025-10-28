@@ -63,13 +63,28 @@ MODEL_PATH = os.environ.get("MODEL_PATH", "/app/models/DeepSeek-OCR")
 print(f"Loading model from: {MODEL_PATH}")
 
 tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH, trust_remote_code=True)
-model = AutoModel.from_pretrained(
-    MODEL_PATH,
-    trust_remote_code=True,
-    torch_dtype=torch.bfloat16
-).cuda().eval()
 
-print("Model loaded successfully!")
+# Try to use flash_attention_2 for optimal performance
+try:
+    print("Attempting to load model with flash_attention_2...")
+    model = AutoModel.from_pretrained(
+        MODEL_PATH,
+        _attn_implementation='flash_attention_2',
+        trust_remote_code=True,
+        use_safetensors=True,
+        torch_dtype=torch.bfloat16
+    ).cuda().eval()
+    print("Model loaded successfully with flash_attention_2!")
+except Exception as e:
+    print(f"Failed to load with flash_attention_2: {e}")
+    print("Falling back to standard attention implementation...")
+    model = AutoModel.from_pretrained(
+        MODEL_PATH,
+        trust_remote_code=True,
+        use_safetensors=True,
+        torch_dtype=torch.bfloat16
+    ).cuda().eval()
+    print("Model loaded successfully with standard attention!")
 
 # Chunk storage directory (use network volume if available, otherwise /tmp)
 CHUNK_STORAGE_DIR = os.environ.get("RUNPOD_VOLUME_PATH", "/tmp") + "/pdf_chunks"
