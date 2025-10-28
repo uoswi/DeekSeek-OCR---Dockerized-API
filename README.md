@@ -103,6 +103,56 @@ curl http://localhost:8000/health
 
 ---
 
+## ☁️ RunPod Serverless Deployment
+
+Deploy DeepSeek-OCR to RunPod with support for large PDFs (>100MB) using chunked uploads or URL-based processing.
+
+### Features
+
+- **Chunked Upload**: Split large PDFs into 5MB chunks to bypass API limits
+- **URL-based Upload**: Download PDFs from external URLs (unlimited size)
+- **Multi-page Processing**: Automatic page-by-page OCR with consolidated results
+- **Disk-based Storage**: Uses network volumes for reliable chunk assembly across workers
+- **Backward Compatible**: Original single-image base64 method still supported
+
+### Quick Deploy
+
+```bash
+# Set your Docker Hub username
+export DOCKER_USERNAME="your_dockerhub_username"
+
+# Build and deploy
+./deploy_to_runpod.sh
+```
+
+The script will:
+1. Build the Docker image with PyMuPDF and dependencies
+2. Push to Docker Hub
+3. Provide instructions for RunPod configuration
+
+### Upload Large PDFs
+
+```bash
+# Set your credentials
+export RUNPOD_API_KEY="your_api_key"
+export RUNPOD_ENDPOINT_ID="your_endpoint_id"
+export PDF_PATH="/path/to/large.pdf"
+
+# Upload using chunked method
+python3 upload_large_pdf_to_runpod.py
+```
+
+### Supported Input Methods
+
+1. **Single Image (base64)** - Original method for small images
+2. **PDF from base64** - For PDFs under 7MB
+3. **PDF from URL** - Recommended for large files (unlimited size)
+4. **Chunked Upload** - For 7MB-500MB PDFs without external hosting
+
+See **[DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)** for detailed instructions, API reference, and troubleshooting.
+
+---
+
 ## 📄 PDF Processing Scripts
 
 This project provides several PDF processing scripts, each designed for different use cases. All scripts scan the `data/` directory for PDF files and convert them to Markdown format with different prompts and post-processing options.
