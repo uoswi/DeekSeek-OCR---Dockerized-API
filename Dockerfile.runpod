@@ -11,9 +11,11 @@ WORKDIR /app
 
 RUN pip3 install --no-cache-dir \
     runpod \
-    torch==2.1.0 \
+    torch \
     torchvision \
-    vllm==0.5.4 \
+    vllm \
+    transformers \
+    accelerate \
     fastapi \
     uvicorn \
     python-multipart \
