@@ -29,12 +29,16 @@ RUN mkdir -p /app/models && \
     huggingface-cli download deepseek-ai/DeepSeek-OCR \
     --local-dir /app/models/DeepSeek-OCR
 
-# Copy handler script
+# Copy handler script and startup wrapper
 COPY runpod_handler.py /app/runpod_handler.py
+COPY runpod_start.sh /app/runpod_start.sh
+
+# Make startup script executable
+RUN chmod +x /app/runpod_start.sh
 
 # Set environment variables
 ENV MODEL_PATH=/app/models/DeepSeek-OCR
 ENV PYTHONPATH=/app/DeepSeek-OCR:$PYTHONPATH
 
-# Start the handler
-CMD ["python", "-u", "/app/runpod_handler.py"]
+# Start the handler through the wrapper script
+CMD ["/app/runpod_start.sh"]
