@@ -9,10 +9,12 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python packages
+# Note: torch 2.1.1 is already in base image, no need to reinstall
+# transformers <4.37.0 is required for PyTorch 2.1.1 compatibility
+# (4.37+ requires PyTorch 2.4+ due to _pytree API changes)
 RUN pip install --no-cache-dir \
     runpod \
-    torch==2.1.1 \
-    transformers \
+    "transformers>=4.30.0,<4.37.0" \
     accelerate \
     sentencepiece \
     protobuf \
@@ -36,5 +38,5 @@ COPY runpod_handler.py /app/runpod_handler.py
 ENV MODEL_PATH=/app/models/DeepSeek-OCR
 ENV PYTHONPATH=/app/DeepSeek-OCR:$PYTHONPATH
 
-# Start the handler
+# Start the handler directly
 CMD ["python", "-u", "/app/runpod_handler.py"]
