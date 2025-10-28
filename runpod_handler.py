@@ -2,18 +2,27 @@ import runpod
 import base64
 from io import BytesIO
 from PIL import Image
-import fitz  # PyMuPDF
 import sys
 import os
 
 # Add DeepSeek-OCR to path
-sys.path.insert(0, '/app/DeepSeek-OCR-master/DeepSeek-OCR-vllm')
+sys.path.insert(0, '/app/DeepSeek-OCR')
 
-from pdf2markdown import DeepSeekOCRProcessor
-from config import MODEL_PATH
+from transformers import AutoModel, AutoTokenizer
+import torch
 
-# Initialize processor
-processor = DeepSeekOCRProcessor(model_path=MODEL_PATH)
+# Initialize model at startup
+MODEL_PATH = os.environ.get("MODEL_PATH", "/app/models/DeepSeek-OCR")
+print(f"Loading model from: {MODEL_PATH}")
+
+tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH, trust_remote_code=True)
+model = AutoModel.from_pretrained(
+    MODEL_PATH,
+    trust_remote_code=True,
+    torch_dtype=torch.bfloat16
+).cuda().eval()
+
+print("Model loaded successfully!")
 
 def handler(event):
     """
@@ -21,65 +30,42 @@ def handler(event):
     Expected input:
     {
         "input": {
-            "file_base64": "base64_encoded_pdf_or_image",
-            "file_type": "pdf" or "image",
+            "image_base64": "base64_encoded_image",
             "prompt": "optional custom prompt"
         }
     }
     """
     try:
         input_data = event.get("input", {})
-        file_base64 = input_data.get("file_base64")
-        file_type = input_data.get("file_type", "pdf")
-        custom_prompt = input_data.get("prompt", None)
+        image_base64 = input_data.get("image_base64")
+        prompt = input_data.get("prompt", "<image>\n<|grounding|>Convert the document to markdown.")
         
-        if not file_base64:
-            return {"error": "No file_base64 provided"}
+        if not image_base64:
+            return {"error": "No image_base64 provided"}
         
-        # Decode base64 file
-        file_bytes = base64.b64decode(file_base64)
+        # Decode base64 image
+        image_bytes = base64.b64decode(image_base64)
+        image = Image.open(BytesIO(image_bytes)).convert("RGB")
         
-        if file_type == "pdf":
-            # Process PDF
-            pdf_document = fitz.open(stream=file_bytes, filetype="pdf")
-            results = []
-            
-            for page_num in range(len(pdf_document)):
-                page = pdf_document[page_num]
-                pix = page.get_pixmap(dpi=144)
-                img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
-                
-                # Process with custom or default prompt
-                if custom_prompt:
-                    result = processor.process_image(img, prompt=custom_prompt)
-                else:
-                    result = processor.process_markdown(img)
-                
-                results.append({
-                    "page": page_num + 1,
-                    "content": result
-                })
-            
-            pdf_document.close()
-            
-            return {
-                "success": True,
-                "results": results,
-                "total_pages": len(results)
-            }
+        # Save image temporarily
+        temp_path = "/tmp/temp_image.jpg"
+        image.save(temp_path)
         
-        else:  # image
-            img = Image.open(BytesIO(file_bytes))
-            
-            if custom_prompt:
-                result = processor.process_image(img, prompt=custom_prompt)
-            else:
-                result = processor.process_markdown(img)
-            
-            return {
-                "success": True,
-                "result": result
-            }
+        # Process with DeepSeek-OCR
+        result = model.infer(
+            tokenizer,
+            prompt=prompt,
+            image_file=temp_path,
+            output_path="/tmp",
+            base_size=1024,
+            image_size=640,
+            crop_mode=True
+        )
+        
+        return {
+            "success": True,
+            "result": result
+        }
     
     except Exception as e:
         return {"error": str(e)}
