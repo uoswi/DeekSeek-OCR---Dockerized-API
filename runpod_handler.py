@@ -7,6 +7,26 @@ import os
 import json
 import requests
 import fitz  # PyMuPDF
+import subprocess
+
+# Fix transformers version compatibility with PyTorch 2.1.1
+print("Checking transformers version compatibility...")
+try:
+    import transformers
+    version = transformers.__version__
+    print(f"Current transformers version: {version}")
+
+    # If version is >= 4.37.0, downgrade to 4.36.2 for PyTorch 2.1.1 compatibility
+    major, minor = map(int, version.split('.')[:2])
+    if major > 4 or (major == 4 and minor >= 37):
+        print(f"Incompatible transformers version {version} detected. Downgrading to 4.36.2...")
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "--no-cache-dir", "transformers==4.36.2"])
+        print("Transformers downgraded successfully. Reloading...")
+        # Force reload of transformers module
+        import importlib
+        importlib.reload(transformers)
+except Exception as e:
+    print(f"Warning during version check: {e}")
 
 # Add DeepSeek-OCR to path
 sys.path.insert(0, '/app/DeepSeek-OCR')
