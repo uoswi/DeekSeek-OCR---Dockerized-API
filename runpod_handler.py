@@ -9,8 +9,8 @@ import requests
 import fitz  # PyMuPDF
 import subprocess
 
-# Fix transformers version compatibility with PyTorch 2.1.1
-print("Checking transformers version compatibility...")
+# Fix transformers and tokenizers version compatibility with PyTorch 2.1.1
+print("Checking transformers and tokenizers version compatibility...")
 try:
     import transformers
     version = transformers.__version__
@@ -20,11 +20,27 @@ try:
     major, minor = map(int, version.split('.')[:2])
     if major > 4 or (major == 4 and minor >= 37):
         print(f"Incompatible transformers version {version} detected. Downgrading to 4.36.2...")
-        subprocess.check_call([sys.executable, "-m", "pip", "install", "--no-cache-dir", "transformers==4.36.2"])
-        print("Transformers downgraded successfully. Reloading...")
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "--no-cache-dir", "transformers==4.36.2", "tokenizers==0.15.2"])
+        print("Transformers and tokenizers downgraded successfully. Reloading...")
         # Force reload of transformers module
         import importlib
         importlib.reload(transformers)
+
+    # Also check tokenizers version for compatibility
+    try:
+        import tokenizers
+        tokenizers_version = tokenizers.__version__
+        print(f"Current tokenizers version: {tokenizers_version}")
+
+        # For transformers 4.36.x, tokenizers should be around 0.15.x
+        tok_major, tok_minor = map(int, tokenizers_version.split('.')[:2])
+        if tok_major > 0 or tok_minor > 15:
+            print(f"Incompatible tokenizers version {tokenizers_version} detected. Installing 0.15.2...")
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "--no-cache-dir", "tokenizers==0.15.2"])
+            print("Tokenizers installed successfully.")
+    except Exception as e:
+        print(f"Warning during tokenizers check: {e}")
+
 except Exception as e:
     print(f"Warning during version check: {e}")
 
