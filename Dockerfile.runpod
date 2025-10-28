@@ -46,4 +46,4 @@ ENV MODEL_PATH=/app/models/DeepSeek-OCR
 ENV PYTHONPATH=/app/DeepSeek-OCR:$PYTHONPATH
 
 # Start the handler directly
-CMD ["python", "-u", "/app/runpod_handler.py"]
+CMD ["python", "-u", "/app/runpod_handler.py"] 
