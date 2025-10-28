@@ -22,17 +22,19 @@ RUN pip3 install --no-cache-dir \
     Pillow \
     PyMuPDF \
     PyYAML \
-    requests
+    requests \
+    huggingface_hub
 
 # Clone DeepSeek-OCR repository
 RUN git clone https://github.com/deepseek-ai/DeepSeek-OCR.git DeepSeek-OCR-master
 
+# Download model from HuggingFace
+RUN mkdir -p /app/models/deepseek-ai/DeepSeek-OCR && \
+    huggingface-cli download deepseek-ai/DeepSeek-OCR \
+    --local-dir /app/models/deepseek-ai/DeepSeek-OCR
+
 # Copy handler
 COPY runpod_handler.py /app/
-
-# Download model (this happens at build time)
-# Note: You'll need to provide model weights
-RUN mkdir -p /app/models/deepseek-ai/DeepSeek-OCR
 
 # Set environment variables
 ENV MODEL_PATH=/app/models/deepseek-ai/DeepSeek-OCR
