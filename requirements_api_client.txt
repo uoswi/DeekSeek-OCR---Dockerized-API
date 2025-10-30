@@ -1,0 +1,5 @@
+# Requirements for DeepSeek_OCR_pdf_to_md_API.py (API Client Only)
+# Install with: pip install -r requirements_api_client.txt
+
+# Only dependency needed - for making HTTP requests to your RunPod API
+requests>=2.28.0
