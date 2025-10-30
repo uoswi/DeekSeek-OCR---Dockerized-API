@@ -11,6 +11,15 @@ import subprocess
 import io
 import contextlib
 
+# Import console utilities for Windows compatibility
+try:
+    from console_utils import safe_print, CHECK, CROSS
+except ImportError:
+    # Fallback if console_utils is not available
+    safe_print = print
+    CHECK = '[OK]'
+    CROSS = '[X]'
+
 # Verify transformers and tokenizers versions for DeepSeek-OCR compatibility
 print("Checking transformers and tokenizers version compatibility...")
 try:
@@ -49,7 +58,7 @@ try:
         importlib.reload(transformers)
         importlib.reload(tokenizers)
     else:
-        print("✓ All versions compatible with DeepSeek-OCR")
+        safe_print(f"{CHECK} All versions compatible with DeepSeek-OCR")
 
 except Exception as e:
     print(f"Warning during version check: {e}")

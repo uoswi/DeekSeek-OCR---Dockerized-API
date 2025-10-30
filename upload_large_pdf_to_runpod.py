@@ -12,6 +12,15 @@ import uuid
 import math
 from pathlib import Path
 
+# Import console utilities for Windows compatibility
+try:
+    from console_utils import safe_print, CHECK, CROSS
+except ImportError:
+    # Fallback if console_utils is not available
+    safe_print = print
+    CHECK = '[OK]'
+    CROSS = '[X]'
+
 # Configuration
 PDF_PATH = os.environ.get("PDF_PATH", "/path/to/your/file.pdf")
 API_KEY = os.environ.get("RUNPOD_API_KEY", "your_api_key_here")
@@ -203,7 +212,7 @@ def upload_to_transfer_sh(pdf_path):
 
         if response.status_code == 200:
             url = response.text.strip()
-            print(f"✓ Uploaded successfully!")
+            safe_print(f"{CHECK} Uploaded successfully!")
             print(f"URL: {url}")
             print(f"Note: This URL expires in 14 days")
             return url
