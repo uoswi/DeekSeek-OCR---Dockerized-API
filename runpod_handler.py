@@ -126,10 +126,10 @@ def process_image_with_model(image, prompt, page_num=None):
     # Save image temporarily
     temp_path = f"/tmp/temp_image_{page_num or 0}.jpg"
     image.save(temp_path)
-    
+
     # Capture stdout - DeepSeek-OCR prints results instead of returning them
     captured_output = io.StringIO()
-    
+
     try:
         with contextlib.redirect_stdout(captured_output):
             result = model.infer(
@@ -137,9 +137,9 @@ def process_image_with_model(image, prompt, page_num=None):
                 prompt=prompt,
                 image_file=temp_path,
                 output_path="/tmp",
-                base_size=1024,
-                image_size=640,
-                crop_mode=True
+                base_size=1280,
+                image_size=1280,
+                crop_mode=False
             )
     except Exception as e:
         print(f"Error during inference: {e}")
@@ -186,7 +186,13 @@ def handler(event):
     """
     try:
         input_data = event.get("input", {})
-        prompt = input_data.get("prompt", "<image>\n<|grounding|>Convert the document to markdown.")
+        prompt = input_data.get("prompt", """<image>
+<|grounding|>Convert this document to markdown with the following requirements:
+1. For charts, graphs, flowcharts, and diagrams: Describe the visual structure and extract all visible data points, labels, and values
+2. For tables: Preserve exact numerical values as shown. Use empty cells or 'N/A' where no data exists. Do not calculate or infer missing values
+3. For pie charts: List all segments with their labels and percentages
+4. Maintain document structure including headings, lists, and paragraphs
+5. Extract all text content accurately including titles, captions, and annotations""")
 
         # Method 1: Handle chunked upload
         if "chunk_data" in input_data:

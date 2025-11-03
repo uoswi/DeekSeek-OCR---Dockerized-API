@@ -9,11 +9,11 @@
 # Large: base_size = 1280, image_size = 1280, crop_mode = False
 # Gundam: base_size = 1024, image_size = 640, crop_mode = True
 
-BASE_SIZE = 1024
-IMAGE_SIZE = 640
-CROP_MODE = True
+BASE_SIZE = 1280
+IMAGE_SIZE = 1280
+CROP_MODE = False
 MIN_CROPS= 2
-MAX_CROPS= 6 # max:9; If your GPU memory is small, it is recommended to set it to 6.
+MAX_CROPS= 9 # max:9; Increased for better chart/graph recognition
 MAX_CONCURRENCY = 100 # If you have limited GPU memory, lower the concurrency count.
 NUM_WORKERS = 64 # image pre-process (resize/padding) workers 
 PRINT_NUM_VIS_TOKENS = False
@@ -30,7 +30,13 @@ OUTPUT_PATH = ''
 
 # CUSTOMIZABLE PROMPT - Modify this line to change the default prompt
 # The API will still accept custom prompts via the prompt parameter
-PROMPT = '<image>\n<|grounding|>Convert the document to markdown.'
+PROMPT = """<image>
+<|grounding|>Convert this document to markdown with the following requirements:
+1. For charts, graphs, flowcharts, and diagrams: Describe the visual structure and extract all visible data points, labels, and values
+2. For tables: Preserve exact numerical values as shown. Use empty cells or 'N/A' where no data exists. Do not calculate or infer missing values
+3. For pie charts: List all segments with their labels and percentages
+4. Maintain document structure including headings, lists, and paragraphs
+5. Extract all text content accurately including titles, captions, and annotations"""
 # PROMPT = '<image>\nFree OCR.'
 # TODO commonly used prompts
 # document: <image>\n<|grounding|>Convert the document to markdown.

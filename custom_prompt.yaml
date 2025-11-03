@@ -18,4 +18,9 @@
 
 prompt: |-
   <image>
-  <|grounding|>Convert the document to markdown.
+  <|grounding|>Convert this document to markdown with the following requirements:
+  1. For charts, graphs, flowcharts, and diagrams: Describe the visual structure and extract all visible data points, labels, and values
+  2. For tables: Preserve exact numerical values as shown. Use empty cells or 'N/A' where no data exists. Do not calculate or infer missing values
+  3. For pie charts: List all segments with their labels and percentages
+  4. Maintain document structure including headings, lists, and paragraphs
+  5. Extract all text content accurately including titles, captions, and annotations
